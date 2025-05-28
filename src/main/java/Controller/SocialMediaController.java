@@ -1,5 +1,10 @@
 package Controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import Model.Account;
+import Service.AccountService;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 
@@ -9,6 +14,13 @@ import io.javalin.http.Context;
  * refer to prior mini-project labs and lecture materials for guidance on how a controller may be built.
  */
 public class SocialMediaController {
+
+    AccountService accountService;
+
+    public SocialMediaController(){
+        accountService = new AccountService();
+    }
+
     /**
      * In order for the test cases to work, you will need to write the endpoints in the startAPI() method, as the test
      * suite must receive a Javalin object from this method.
@@ -16,18 +28,35 @@ public class SocialMediaController {
      */
     public Javalin startAPI() {
         Javalin app = Javalin.create();
-        app.get("example-endpoint", this::exampleHandler);
-
+        app.post("/register", this::postRegisterHandler);
+        app.post("/login", this::postLoginHandler);
+        
         return app;
     }
 
-    /**
-     * This is an example handler for an example endpoint.
-     * @param context The Javalin Context object manages information about both the HTTP request and response.
-     */
-    private void exampleHandler(Context context) {
-        context.json("sample text");
+    private void postRegisterHandler(Context ctx) throws JsonProcessingException {
+        ObjectMapper om = new ObjectMapper();
+        Account newAccount = om.readValue(ctx.body(), Account.class);
+        // call account service next
+        Account addedAccount = accountService.addAccount(newAccount);
+        if(addedAccount == null) {
+            ctx.status(400);
+        } else {
+            ctx.status(200);
+            ctx.json(om.writeValueAsString(addedAccount));
+        }
     }
 
+    private void postLoginHandler(Context ctx) throws JsonProcessingException {
+        ObjectMapper om = new ObjectMapper();
+        Account acct = om.readValue(ctx.body(), Account.class);
+        Account validAcct = accountService.loginAccount(acct);
 
+        if(validAcct == null) {
+            ctx.status(401);
+        } else {
+            ctx.status(200);
+            ctx.json(om.writeValueAsString(validAcct));
+        }
+    }
 }
