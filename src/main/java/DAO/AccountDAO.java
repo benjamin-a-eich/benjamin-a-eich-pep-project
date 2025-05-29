@@ -69,7 +69,7 @@ public class AccountDAO {
     // Method to check if a usedrname for an account is already taken.
     // This is really similar to the login function, but is very important that it is it's own function
     // As here, we only care if the username matches, we don't care about the password.
-    public boolean queryUser (Account account) {
+    public boolean queryUsername (Account account) {
         Connection conn = ConnectionUtil.getConnection();
 
         try {
@@ -92,6 +92,34 @@ public class AccountDAO {
             System.out.println(e);
         }
         
+        return false;
+    }
+
+    public boolean queryAccountID(int act_id) {
+
+        Connection conn = ConnectionUtil.getConnection();
+
+        try {
+            String sql = "SELECT * WHERE account_id=?";
+
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, act_id);
+
+            ResultSet rs = ps.executeQuery();
+
+            // Check the results set
+            if(rs.next()) {
+                // Return true if an account with that account id exists
+                return true;
+            } else {
+                // Return false if the account does not exist. ie the results set has no next
+                return false;
+            }
+            
+        } catch (SQLException e) {
+            System.out.println(e);
+        }
+
         return false;
     }
     

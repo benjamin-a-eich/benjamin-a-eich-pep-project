@@ -4,7 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import Model.Account;
+import Model.Message;
 import Service.AccountService;
+import Service.MessageService;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 
@@ -16,9 +18,11 @@ import io.javalin.http.Context;
 public class SocialMediaController {
 
     AccountService accountService;
+    MessageService messageService;
 
     public SocialMediaController(){
-        accountService = new AccountService();
+        this.accountService = new AccountService();
+        this.messageService = new MessageService();
     }
 
     /**
@@ -30,7 +34,13 @@ public class SocialMediaController {
         Javalin app = Javalin.create();
         app.post("/register", this::postRegisterHandler);
         app.post("/login", this::postLoginHandler);
-        
+        app.post("/messages", this::postNewMessageHandler);
+        app.get("/messages", this::getAllMessagesHandler);
+        app.get("/messages/{message_id}", this::getMessageByIDHandler);
+        app.delete("/messages/{message_id}", this::deleteMessageHandler);
+        app.patch("/messages/{message_id}", this::patchMessageUpdateHandler);
+        app.get("/accounts/{account_id}/messages", this::getAllMessagesByAccountHandler);
+
         return app;
     }
 
@@ -58,5 +68,65 @@ public class SocialMediaController {
             ctx.status(200);
             ctx.json(om.writeValueAsString(validAcct));
         }
+    }
+
+    private void postNewMessageHandler(Context ctx) throws JsonProcessingException {
+        // Get data first
+        ObjectMapper om = new ObjectMapper();
+        Message message = om.readValue(ctx.body(), Message.class);
+
+        // Validate that an account exists with the given id
+        boolean acctExists = accountService.validateUserHelper(message.posted_by);
+
+        // If it does exist call the method to post it
+        if(acctExists) {
+            Message postedMsg = messageService.addMessage(message);
+            if(postedMsg != null) {
+                ctx.status(200);
+                ctx.json(om.writeValueAsString(postedMsg));
+            }
+        } else {
+            ctx.status(400);
+        }
+    }
+
+    private void getAllMessagesHandler(Context ctx) throws JsonProcessingException {
+        ObjectMapper om = new ObjectMapper();
+
+        ctx.json(om.writeValueAsString(messageService.getAllMessages()));
+        ctx.status(200);
+    }
+
+    private void getMessageByIDHandler(Context ctx) throws JsonProcessingException {
+        ObjectMapper om = new ObjectMapper();
+        // Get the path parameter
+        int messageID = Integer.parseInt(ctx.pathParam("message_id"));
+
+        ctx.json(om.writeValueAsString(messageService.getMessageByID(messageID)));
+        ctx.status(200);
+    }
+    
+    private void getAllMessagesByAccountHandler(Context ctx) throws JsonProcessingException{
+        ObjectMapper om = new ObjectMapper();
+        int accountID = Integer.parseInt(ctx.pathParam("account_id"));
+
+        ctx.json(om.writeValueAsString(messageService.getMessagesByAccount(accountID)));
+        ctx.status(200);
+    }
+
+    private void patchMessageUpdateHandler(Context ctx) {
+        // ObjectMapper om = new ObjectMapper();
+        // // Get the path parameter
+        // int messageID = Integer.parseInt(ctx.pathParam("message_id"));
+        // // Get the body, which is just supposed to have the updated message text
+        // String newText = ctx.body();
+
+        
+        // If failed
+        ctx.status(400);
+    }
+
+    private void deleteMessageHandler(Context ctx) {
+        ctx.status(418);
     }
 }
