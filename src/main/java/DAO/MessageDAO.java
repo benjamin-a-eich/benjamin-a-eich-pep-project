@@ -69,7 +69,7 @@ public class MessageDAO {
         List<Message> messages = new ArrayList<>();
 
         try {
-            String sql = "sELECT * FROM message WHERE posted_by=?";
+            String sql = "SELECT * FROM message WHERE posted_by=?";
             PreparedStatement ps = conn.prepareStatement(sql);
 
             ps.setInt(1, account_id);

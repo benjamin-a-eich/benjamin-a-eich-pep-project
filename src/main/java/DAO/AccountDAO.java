@@ -41,7 +41,7 @@ public class AccountDAO {
         Connection conn = ConnectionUtil.getConnection();
 
         try {
-            String sql = "SELECT * WHERE username=? AND password=?";
+            String sql = "SELECT * FROM account WHERE username=? AND password=?";
 
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, account.username);
@@ -73,7 +73,7 @@ public class AccountDAO {
         Connection conn = ConnectionUtil.getConnection();
 
         try {
-            String sql = "SELECT * WHERE username=?";
+            String sql = "SELECT * FROM account WHERE username=?";
 
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setString(1, account.username);
@@ -100,13 +100,13 @@ public class AccountDAO {
         Connection conn = ConnectionUtil.getConnection();
 
         try {
-            String sql = "SELECT * WHERE account_id=?";
+            String sql = "SELECT * FROM account WHERE account_id=?";
 
             PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, act_id);
 
             ResultSet rs = ps.executeQuery();
-
+            System.out.println(rs);
             // Check the results set
             if(rs.next()) {
                 // Return true if an account with that account id exists

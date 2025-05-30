@@ -1,6 +1,11 @@
 package Controller;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import Model.Account;
@@ -79,11 +84,14 @@ public class SocialMediaController {
         boolean acctExists = accountService.validateUserHelper(message.posted_by);
 
         // If it does exist call the method to post it
+        System.out.println(acctExists);
         if(acctExists) {
             Message postedMsg = messageService.addMessage(message);
             if(postedMsg != null) {
                 ctx.status(200);
                 ctx.json(om.writeValueAsString(postedMsg));
+            } else {
+                ctx.status(400);
             }
         } else {
             ctx.status(400);
@@ -92,17 +100,22 @@ public class SocialMediaController {
 
     private void getAllMessagesHandler(Context ctx) throws JsonProcessingException {
         ObjectMapper om = new ObjectMapper();
-
+        
         ctx.json(om.writeValueAsString(messageService.getAllMessages()));
         ctx.status(200);
     }
 
     private void getMessageByIDHandler(Context ctx) throws JsonProcessingException {
         ObjectMapper om = new ObjectMapper();
+
         // Get the path parameter
         int messageID = Integer.parseInt(ctx.pathParam("message_id"));
-
-        ctx.json(om.writeValueAsString(messageService.getMessageByID(messageID)));
+        Message returnedMsg = messageService.getMessageByID(messageID);
+        
+        if (returnedMsg != null) {
+            ctx.json(om.writeValueAsString(returnedMsg));
+        }
+        
         ctx.status(200);
     }
     
@@ -114,19 +127,35 @@ public class SocialMediaController {
         ctx.status(200);
     }
 
-    private void patchMessageUpdateHandler(Context ctx) {
-        // ObjectMapper om = new ObjectMapper();
-        // // Get the path parameter
-        // int messageID = Integer.parseInt(ctx.pathParam("message_id"));
-        // // Get the body, which is just supposed to have the updated message text
-        // String newText = ctx.body();
+    private void patchMessageUpdateHandler(Context ctx) throws JsonMappingException, JsonProcessingException {
+        ObjectMapper om = new ObjectMapper();
+        // Get the path parameter
+        int messageID = Integer.parseInt(ctx.pathParam("message_id"));
 
-        
-        // If failed
-        ctx.status(400);
+        // Get the body, which is just supposed to have the updated message text
+        Map<String, Object> bodyMap = om.readValue(ctx.body(), new TypeReference<Map<String, Object>>() {});
+        String newText = bodyMap.get("message_text").toString();
+
+        Message updatedMessage = messageService.updateMessage(messageID , newText);
+
+        if(updatedMessage != null) {
+            ctx.json(om.writeValueAsString(updatedMessage));
+            ctx.status(200);
+        } else {
+            ctx.status(400);
+        }
     }
 
-    private void deleteMessageHandler(Context ctx) {
-        ctx.status(418);
+    private void deleteMessageHandler(Context ctx) throws JsonProcessingException {
+        ObjectMapper om = new ObjectMapper();
+        // Get the path parameter
+        int messageID = Integer.parseInt(ctx.pathParam("message_id"));
+        
+        Message deletedMessage = messageService.deleteMessage(messageID);
+        if(deletedMessage != null) {
+            ctx.json(om.writeValueAsString(deletedMessage));
+        }
+        
+        ctx.status(200);
     }
 }
