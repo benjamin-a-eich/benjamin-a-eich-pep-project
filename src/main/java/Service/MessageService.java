@@ -15,7 +15,6 @@ public class MessageService {
     public Message addMessage(Message message){
         // Frist validate the message text
         boolean validMsg = messageVaildationHelper(message.message_text);
-        System.out.println(validMsg);
 
         if(validMsg) {
             // Set epoch time nevermind this is already set in the incoming json

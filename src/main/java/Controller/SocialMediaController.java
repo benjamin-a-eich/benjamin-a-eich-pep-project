@@ -84,7 +84,6 @@ public class SocialMediaController {
         boolean acctExists = accountService.validateUserHelper(message.posted_by);
 
         // If it does exist call the method to post it
-        System.out.println(acctExists);
         if(acctExists) {
             Message postedMsg = messageService.addMessage(message);
             if(postedMsg != null) {

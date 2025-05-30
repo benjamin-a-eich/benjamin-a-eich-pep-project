@@ -106,7 +106,7 @@ public class AccountDAO {
             ps.setInt(1, act_id);
 
             ResultSet rs = ps.executeQuery();
-            System.out.println(rs);
+
             // Check the results set
             if(rs.next()) {
                 // Return true if an account with that account id exists
